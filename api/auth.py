@@ -1,22 +1,22 @@
-from flask import Blueprint, request, jsonify, session
-from api.extensions import db
+from flask import Blueprint, request, jsonify
+from functools import wraps
+from api.extensions import db, jwt
 from api.models import User
-# Note: db imported directly, User from models (models imports db absolute)
+from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token
 
 auth_bp = Blueprint('auth', __name__)
 
 def require_auth(f):
+    @wraps(f)
+    @jwt_required()
     def decorated_function(*args, **kwargs):
-        user_id = session.get('user_id')
-        if not user_id:
-            return jsonify({'error': 'Authentication required'}), 401
+        user_id = int(get_jwt_identity())
         return f(user_id=user_id, *args, **kwargs)
-    decorated_function.__name__ = f.__name__
     return decorated_function
 
 @auth_bp.route('/register', methods=['POST'])
 def register():
-    data = (request.get_json() or {})
+    data = request.get_json() or {}
     username = data.get('username')
     password = data.get('password')
     if not username or not password:
@@ -29,11 +29,12 @@ def register():
     db.session.add(user)
     db.session.commit()
     
-    return jsonify({'message': 'User created', 'user_id': user.id}), 201
+    access_token = create_access_token(identity=str(user.id))
+    return jsonify({'message': 'User created', 'user_id': user.id, 'access_token': access_token}), 201
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
-    data = (request.get_json() or {})
+    data = request.get_json() or {}
     username = data.get('username')
     password = data.get('password')
     if not username or not password:
@@ -41,8 +42,8 @@ def login():
     
     user = User.query.filter_by(username=username).first()
     if user and user.check_password(password):
-        session['user_id'] = user.id
-        return jsonify({'message': 'Logged in', 'user_id': user.id}), 200
+        access_token = create_access_token(identity=str(user.id))
+        return jsonify({'message': 'Logged in', 'user_id': user.id, 'access_token': access_token}), 200
     
     return jsonify({'error': 'Invalid credentials'}), 401
 
@@ -50,10 +51,7 @@ def login():
 @require_auth
 def check_session(user_id):
     user = db.session.get(User, user_id)
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
     return jsonify({'user_id': user_id, 'username': user.username}), 200
-
-@auth_bp.route('/logout', methods=['DELETE'])
-def logout():
-    session.pop('user_id', None)
-    return jsonify({'message': 'Logged out'}), 200
 
