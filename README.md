@@ -1,6 +1,7 @@
+
 # Productivity Notes API - Flask Backend
 
-Secure session-based Flask API for user-owned notes. Full CRUD + pagination. Integrates with client-with-sessions frontend.
+Secure JWT-based Flask API for user-owned notes. Full CRUD + pagination. Integrates with client-with-jwt frontend.
 
 ## IMPORTANT: Always use `pipenv run` (deps in virtualenv only)!
 
@@ -20,20 +21,21 @@ API at http://localhost:5000
 
 ## Endpoints
 
+
 ### Auth
 - `POST /api/auth/register`  
-  Body: `{\"username\": \"test\", \"password\": \"pass\"}`  
+  Body: `{"username": "test", "password": "pass"}`  
   201 created
 
 - `POST /api/auth/login`  
-  Body: `{\"username\": \"test\", \"password\": \"pass\"}`  
-  200 logged in, sets session cookie
+  Body: `{"username": "test", "password": "pass"}`  
+  200 logged in, returns JWT access token
 
 - `GET /api/auth/check_session`  
-  Auth req, returns user info if logged in
+  Auth required (JWT), returns user info if logged in
 
 - `DELETE /api/auth/logout`  
-  Clears session
+  For JWT: instructs client to delete JWT token (stateless logout)
 
 ### Notes (auth required)
 - `GET /api/notes?page=1&amp;per_page=5`  
@@ -50,17 +52,21 @@ API at http://localhost:5000
   Owner only
 
 ## Testing
-Use Postman (save cookies) or curl:
+
+Use Postman or curl. Pass JWT in Authorization header:
 
 Login:
 ```bash
-curl -X POST -H "Content-Type: application/json" -d '{\"username\":\"youruser\",\"password\":\"password123\"}' -c cookies.txt http://localhost:5000/api/auth/login
+curl -X POST -H "Content-Type: application/json" -d '{"username":"youruser","password":"password123"}' http://localhost:5000/api/auth/login
 ```
 
-Notes:
+Use the returned access_token:
 ```bash
-curl -X GET -b cookies.txt "http://localhost:5000/api/notes?page=1&amp;per_page=3"
+curl -H "Authorization: Bearer <access_token>" http://localhost:5000/api/notes
 ```
+
+Logout:
+Client should delete the JWT token (stateless logout).
 
 ## Errors
 400 Bad req, 401 Unauthorized, 403 Unauthorized (owner), 404 Not found.
