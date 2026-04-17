@@ -1,7 +1,3 @@
-# JWT logout is stateless; for completeness, provide a /logout endpoint that instructs client to delete token
-@auth_bp.route('/logout', methods=['DELETE'])
-def logout():
-    return jsonify({'message': 'Logout: client should delete JWT token'}), 200
 from flask import Blueprint, request, jsonify
 from functools import wraps
 from api.extensions import db, jwt
@@ -58,4 +54,9 @@ def check_session(user_id):
     if not user:
         return jsonify({'error': 'User not found'}), 404
     return jsonify({'user_id': user_id, 'username': user.username}), 200
+
+# JWT logout is stateless; for completeness, provide a /logout endpoint that instructs client to delete token
+@auth_bp.route('/logout', methods=['DELETE'])
+def logout():
+    return jsonify({'message': 'Logout: client should delete JWT token'}), 200
 
