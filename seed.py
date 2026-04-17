@@ -1,9 +1,10 @@
 from api.app import create_app
-from api.models import db, User, Note
+from api.models import User, Note
 
 app = create_app()
 
 with app.app_context():
+    from api.models import db
     # Clear existing data
     db.session.query(Note).delete()
     db.session.query(User).delete()

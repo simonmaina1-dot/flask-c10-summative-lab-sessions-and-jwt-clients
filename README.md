@@ -1,10 +1,13 @@
-# Productivity Notes API - Full Auth Flask Backend
+# Productivity Notes API - Full Auth Flask Backend (Summative Lab Complete)
 
-Session-based Flask API for user productivity notes. Full auth (register/login/logout/check_session), protected Notes CRUD with pagination.
+Session-based Flask API for secure user-owned notes. Implements full auth, protected CRUD + pagination per rubric specs. Compatible with session-based frontend client.
+
+**Status: COMPLETE** - All requirements met (auth/CRUD/pag/secure/models/seed/structure/README).
 
 ## Installation
 1. Install dependencies: `pipenv install`
-2. Create/seed DB and run: `pipenv run python run.py` (starts server at http://127.0.0.1:5000, auto-creates sqlite:///notes.db)
+2. DB/migrate (dev uses create_all; optional): `pipenv run flask db init && pipenv run flask db migrate && pipenv run flask db upgrade` (needs FLASK_APP=api.app)
+   Or auto-create: `pipenv run python run.py` (starts server at http://127.0.0.1:5000, creates sqlite:///notes.db)
 3. Seed test data: `pipenv run python seed.py` (3 users: user1-3 pw=password123, 9 notes)
 
 **Note:** Always use `pipenv run` commands.

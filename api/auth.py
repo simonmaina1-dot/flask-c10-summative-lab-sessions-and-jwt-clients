@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify, session
 from functools import wraps
-from api.extensions import db
-from api.models import User
+from .extensions import db
+from .models import User
 
 
 auth_bp = Blueprint('auth', __name__)

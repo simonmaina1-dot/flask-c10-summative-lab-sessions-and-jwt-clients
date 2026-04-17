@@ -1,6 +1,6 @@
-from flask import Blueprint, request, jsonify, session
+from flask import Blueprint, request, jsonify
 from .extensions import db
-from .models import Note, User
+from .models import Note
 from .auth import require_auth
 
 notes_bp = Blueprint('notes', __name__)
@@ -44,7 +44,7 @@ def update(user_id, note_id):
     if not note:
         return jsonify({'error': 'Note not found or unauthorized'}), 403
     
-    data = request.get_json()
+    data = request.get_json() or {}
     if 'title' in data:
         note.title = data['title']
     if 'content' in data:
@@ -63,4 +63,8 @@ def delete(user_id, note_id):
     db.session.delete(note)
     db.session.commit()
     return jsonify({'message': 'Note deleted'}), 200
+
+if __name__ == '__main__':
+    # Legacy standalone run removed: Use `pipenv run python run.py` instead.
+    print('Use `pipenv run python run.py` to start the server.')
 
