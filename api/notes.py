@@ -25,7 +25,7 @@ def index(user_id):
 @notes_bp.route('', methods=['POST'])
 @require_auth
 def create(user_id):
-data = request.get_json() or {}
+    data = request.get_json() or {}
     title = data.get('title')
     content = data.get('content')
     if not title or not content:
