@@ -1,7 +1,10 @@
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from flask import Blueprint, request, jsonify, session
 from functools import wraps
-from .extensions import db
-from .models import User
+from extensions import db
+from models import User
 
 
 auth_bp = Blueprint('auth', __name__)
