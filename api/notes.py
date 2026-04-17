@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
-from .extensions import db
-from .models import Note
-from .auth import require_auth
+from api.extensions import db
+from api.models import Note
+from api.auth import require_auth
 
 notes_bp = Blueprint('notes', __name__)
 
@@ -25,7 +25,7 @@ def index(user_id):
 @notes_bp.route('', methods=['POST'])
 @require_auth
 def create(user_id):
-    data = request.get_json()
+data = request.get_json() or {}
     title = data.get('title')
     content = data.get('content')
     if not title or not content:
