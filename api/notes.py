@@ -2,9 +2,9 @@ import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from flask import Blueprint, request, jsonify
-from extensions import db
-from models import Note
-from auth import require_auth
+from api.extensions import db
+from api.models import Note
+from api.auth import require_auth
 
 notes_bp = Blueprint('notes', __name__)
 
@@ -68,5 +68,4 @@ def delete(user_id, note_id):
     return jsonify({'message': 'Note deleted'}), 200
 
 if __name__ == '__main__':
-    print('Direct run for testing imports only (use `pipenv run python run.py` for full app).')
-
+    print('Direct run for testing imports only (use `pipenv run python api/run.py` for full app).')

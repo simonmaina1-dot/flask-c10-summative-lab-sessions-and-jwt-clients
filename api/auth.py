@@ -3,9 +3,8 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from flask import Blueprint, request, jsonify, session
 from functools import wraps
-from extensions import db
-from models import User
-
+from api.extensions import db
+from api.models import User
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -36,7 +35,7 @@ def register():
     user = User(username=username, password=password)
     db.session.add(user)
     db.session.commit()
-    session['user_id'] = user.id
+    session['user_id'] = str(user.id)
     return jsonify({'id': user.id, 'username': user.username}), 201
 
 @auth_bp.route('/login', methods=['POST'])
@@ -49,7 +48,7 @@ def login():
     
     user = User.query.filter_by(username=username).first()
     if user and user.check_password(password):
-        session['user_id'] = user.id
+        session['user_id'] = str(user.id)
         return jsonify({'id': user.id, 'username': user.username}), 200
     
     return jsonify({'error': 'Invalid credentials'}), 401
@@ -68,9 +67,7 @@ def check_session():
         return jsonify({'error': 'User not found'}), 404
     return jsonify({'user_id': user_id, 'username': user.username}), 200
 
-# Session logout
 @auth_bp.route('/logout', methods=['DELETE'])
 def logout():
     session.pop('user_id', None)
     return jsonify({'message': 'Logged out'}), 200
-
