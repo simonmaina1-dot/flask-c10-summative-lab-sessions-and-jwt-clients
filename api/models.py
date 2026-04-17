@@ -1,4 +1,7 @@
-from .extensions import db, bcrypt
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from extensions import db, bcrypt
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
