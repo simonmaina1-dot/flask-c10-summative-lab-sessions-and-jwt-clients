@@ -30,9 +30,8 @@ def test_check_session(client):
     assert reg_resp.status_code == 201
     login_resp = login(client, 'testuser2', 'testpass')
     assert login_resp.status_code == 200
-    token = login_resp.get_json()['access_token']
-    headers = {'Authorization': f'Bearer {token}'}
-    resp = client.get('/api/auth/check_session', headers=headers)
+    # Session persists automatically in test_client
+    resp = client.get('/api/auth/check_session')
     print('check_session resp:', resp.status_code, resp.get_json())
     assert resp.status_code == 200
     assert resp.get_json()['username'] == 'testuser2'
@@ -42,25 +41,24 @@ def test_notes_crud(client):
     assert reg_resp.status_code == 201
     login_resp = login(client, 'noteuser', 'pass')
     assert login_resp.status_code == 200
-    token = login_resp.get_json()['access_token']
-    headers = {'Authorization': f'Bearer {token}'}
+    # Session persists automatically in test_client
     # Create note
-    resp = client.post('/api/notes', json={'title': 'T', 'content': 'C'}, headers=headers)
+    resp = client.post('/api/notes', json={'title': 'T', 'content': 'C'})
     print('notes post resp:', resp.status_code, resp.get_json())
     assert resp.status_code == 201
     note_id = resp.get_json()['id']
     # Get notes
-    resp = client.get('/api/notes', headers=headers)
+    resp = client.get('/api/notes')
     assert resp.status_code == 200
     assert len(resp.get_json()['notes']) == 1
     note_id = resp.get_json()['notes'][0]['id']
     # Update note
-    resp = client.patch(f'/api/notes/{note_id}', json={'title': 'T2'}, headers=headers)
+    resp = client.patch(f'/api/notes/{note_id}', json={'title': 'T2'})
     assert resp.status_code == 200
     assert resp.get_json()['title'] == 'T2'
     # Delete note
-    resp = client.delete(f'/api/notes/{note_id}', headers=headers)
+    resp = client.delete(f'/api/notes/{note_id}')
     assert resp.status_code == 200
     # Confirm gone
-    resp = client.get('/api/notes', headers=headers)
+    resp = client.get('/api/notes')
     assert len(resp.get_json()['notes']) == 0

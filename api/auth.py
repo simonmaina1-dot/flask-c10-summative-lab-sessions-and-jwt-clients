@@ -12,7 +12,10 @@ def require_auth(f):
         user_id_str = session.get('user_id')
         if not user_id_str:
             return jsonify({'error': 'Unauthorized'}), 401
-        user_id = int(user_id_str)
+        try:
+            user_id = int(user_id_str)
+        except ValueError:
+            return jsonify({'error': 'Unauthorized'}), 401
         return f(user_id=user_id, *args, **kwargs)
     return decorated_function
 
@@ -27,7 +30,7 @@ def register():
     if User.query.filter_by(username=username).first():
         return jsonify({'error': 'Username taken'}), 400
     
-    user = User(username, password)
+    user = User(username=username, password=password)
     db.session.add(user)
     db.session.commit()
     session['user_id'] = user.id
@@ -53,7 +56,9 @@ def check_session():
     user_id_str = session.get('user_id')
     if not user_id_str:
         return jsonify({'error': 'Unauthorized'}), 401
-    user_id = int(user_id_str)
+    try:
+        user_id = int(user_id_str)
+    except ValueError:
         return jsonify({'error': 'Unauthorized'}), 401
     user = User.query.get(user_id)
     if not user:
