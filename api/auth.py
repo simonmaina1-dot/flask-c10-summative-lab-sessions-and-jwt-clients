@@ -1,16 +1,18 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, session
 from functools import wraps
-from api.extensions import db, jwt
+from api.extensions import db
 from api.models import User
-from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token
+
 
 auth_bp = Blueprint('auth', __name__)
 
 def require_auth(f):
     @wraps(f)
-    @jwt_required()
     def decorated_function(*args, **kwargs):
-        user_id = int(get_jwt_identity())
+        user_id_str = session.get('user_id')
+        if not user_id_str:
+            return jsonify({'error': 'Unauthorized'}), 401
+        user_id = int(user_id_str)
         return f(user_id=user_id, *args, **kwargs)
     return decorated_function
 
@@ -28,9 +30,8 @@ def register():
     user = User(username, password)
     db.session.add(user)
     db.session.commit()
-    
-    access_token = create_access_token(identity=str(user.id))
-    return jsonify({'message': 'User created', 'user_id': user.id, 'access_token': access_token}), 201
+    session['user_id'] = user.id
+    return jsonify({'id': user.id, 'username': user.username}), 201
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
@@ -42,21 +43,26 @@ def login():
     
     user = User.query.filter_by(username=username).first()
     if user and user.check_password(password):
-        access_token = create_access_token(identity=str(user.id))
-        return jsonify({'message': 'Logged in', 'user_id': user.id, 'access_token': access_token}), 200
+        session['user_id'] = user.id
+        return jsonify({'id': user.id, 'username': user.username}), 200
     
     return jsonify({'error': 'Invalid credentials'}), 401
 
 @auth_bp.route('/check_session', methods=['GET'])
-@require_auth
-def check_session(user_id):
-    user = db.session.get(User, user_id)
+def check_session():
+    user_id_str = session.get('user_id')
+    if not user_id_str:
+        return jsonify({'error': 'Unauthorized'}), 401
+    user_id = int(user_id_str)
+        return jsonify({'error': 'Unauthorized'}), 401
+    user = User.query.get(user_id)
     if not user:
         return jsonify({'error': 'User not found'}), 404
     return jsonify({'user_id': user_id, 'username': user.username}), 200
 
-# JWT logout is stateless; for completeness, provide a /logout endpoint that instructs client to delete token
+# Session logout
 @auth_bp.route('/logout', methods=['DELETE'])
 def logout():
-    return jsonify({'message': 'Logout: client should delete JWT token'}), 200
+    session.pop('user_id', None)
+    return jsonify({'message': 'Logged out'}), 200
 
