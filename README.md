@@ -70,3 +70,5 @@ curl -b cookies.txt -X DELETE http://127.0.0.1:5000/api/auth/logout
 400 Bad Request, 401 Unauthorized, 403 Forbidden (not owner), 404 Not Found.
 
 **Rubric Compliance:** Full auth (10/10), protected CRUD/pagination (10/10), models bcrypt/unique (10/10), seed (10/10), structure modular (5/5), tests (bonus).
+
+

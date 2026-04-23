@@ -3,20 +3,21 @@ import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { Button } from "../styles";
 
-function NavBar({ setUser }) {
+function NavBar({ user, onLogout }) {
   function handleLogoutClick() {
     localStorage.removeItem("token");
-    setUser(null);
+    onLogout();
   }
 
   return (
     <Wrapper>
       <Logo>
-        <Link to="/">My App</Link>
+        <Link to="/notes">Notes App</Link>
       </Logo>
       <Nav>
-        <Button>
-          Do Something
+        <Welcome>Welcome, {user.username}!</Welcome>
+        <Button as={Link} to="/notes">
+          Notes
         </Button>
         <Button variant="outline" onClick={handleLogoutClick}>
           Logout
@@ -51,6 +52,12 @@ const Nav = styled.nav`
   gap: 4px;
   position: absolute;
   right: 8px;
+  align-items: center;
+`;
+
+const Welcome = styled.span`
+  font-weight: bold;
+  margin-right: 8px;
 `;
 
 export default NavBar;

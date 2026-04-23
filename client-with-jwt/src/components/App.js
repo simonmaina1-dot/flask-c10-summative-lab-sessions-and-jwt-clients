@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
+import { Switch, Route, Redirect } from "react-router-dom";
 import NavBar from "./NavBar";
 import Login from "../pages/Login";
+import NotesPage from "../pages/NotesPage";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -20,15 +22,27 @@ function App() {
   const onLogin = (token, user) => {
     localStorage.setItem("token", token);
     setUser(user);
-  }
+  };
+
+  const onLogout = () => {
+    localStorage.removeItem("token");
+    setUser(null);
+  };
 
   if (!user) return <Login onLogin={onLogin} />;
 
   return (
     <>
-      <NavBar setUser={setUser} />
+      <NavBar user={user} onLogout={onLogout} />
       <main>
-        <p>You are logged in!</p>
+        <Switch>
+          <Route exact path="/">
+            <Redirect to="/notes" />
+          </Route>
+          <Route path="/notes">
+            <NotesPage />
+          </Route>
+        </Switch>
       </main>
     </>
   );

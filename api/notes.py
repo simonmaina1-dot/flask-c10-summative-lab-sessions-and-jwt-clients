@@ -2,15 +2,16 @@ import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from flask import Blueprint, request, jsonify
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from api.extensions import db
 from api.models import Note
-from api.auth import require_auth
 
 notes_bp = Blueprint('notes', __name__)
 
 @notes_bp.route('', methods=['GET'])
-@require_auth
-def index(user_id):
+@jwt_required()
+def index():
+    user_id = int(get_jwt_identity())
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 10, type=int)
     
@@ -26,13 +27,14 @@ def index(user_id):
     })
 
 @notes_bp.route('', methods=['POST'])
-@require_auth
-def create(user_id):
+@jwt_required()
+def create():
+    user_id = int(get_jwt_identity())
     data = request.get_json() or {}
     title = data.get('title')
     content = data.get('content')
     if not title or not content:
-        return jsonify({'error': 'Title and content required'}), 400
+        return jsonify({'errors': ['Title and content required']}), 400
     
     note = Note(title=title, content=content, user_id=user_id)
     db.session.add(note)
@@ -41,11 +43,12 @@ def create(user_id):
     return jsonify({'id': note.id, 'title': note.title, 'content': note.content}), 201
 
 @notes_bp.route('/<int:note_id>', methods=['PATCH'])
-@require_auth
-def update(user_id, note_id):
+@jwt_required()
+def update(note_id):
+    user_id = int(get_jwt_identity())
     note = Note.query.filter_by(id=note_id, user_id=user_id).first()
     if not note:
-        return jsonify({'error': 'Note not found or unauthorized'}), 403
+        return jsonify({'errors': ['Note not found or unauthorized']}), 403
     
     data = request.get_json() or {}
     if 'title' in data:
@@ -57,15 +60,14 @@ def update(user_id, note_id):
     return jsonify({'id': note.id, 'title': note.title, 'content': note.content})
 
 @notes_bp.route('/<int:note_id>', methods=['DELETE'])
-@require_auth
-def delete(user_id, note_id):
+@jwt_required()
+def delete(note_id):
+    user_id = int(get_jwt_identity())
     note = Note.query.filter_by(id=note_id, user_id=user_id).first()
     if not note:
-        return jsonify({'error': 'Note not found or unauthorized'}), 403
+        return jsonify({'errors': ['Note not found or unauthorized']}), 403
     
     db.session.delete(note)
     db.session.commit()
     return jsonify({'message': 'Note deleted'}), 200
 
-if __name__ == '__main__':
-    print('Direct run for testing imports only (use `pipenv run python api/run.py` for full app).')
